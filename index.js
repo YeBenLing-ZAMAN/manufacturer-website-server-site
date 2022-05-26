@@ -25,6 +25,7 @@ async function run() {
     await client.connect();
     const toolsCollection = client.db('tools').collection('products');
     const bookingCollection = client.db('tools').collection('bookingProducts');
+    const reviewCollection = client.db('tools').collection('reviews');
 
     app.get('/tools', async (req, res) => {
       const tools = await toolsCollection.find().toArray();
@@ -59,6 +60,13 @@ async function run() {
       //} else {
       return res.status(403).send({ message: 'forbidden access' });
       //}
+    })
+
+    app.post('/addreview', async (req, res) => {
+      const review = req.body;
+      // console.log(review);
+      const result = await reviewCollection.insertOne(review);
+      return res.send({ success: true, result });
     })
 
   } finally {

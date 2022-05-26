@@ -26,10 +26,10 @@ async function run() {
     const toolsCollection = client.db('tools').collection('products');
     const bookingCollection = client.db('tools').collection('bookingProducts');
 
-      app.get('/tools', async (req, res) => {
-        const tools = await toolsCollection.find().toArray();
-        res.send(tools);
-      })
+    app.get('/tools', async (req, res) => {
+      const tools = await toolsCollection.find().toArray();
+      res.send(tools);
+    })
 
     app.get('/tool/:id', async (req, res) => {
       const id = req.params.id;
@@ -45,6 +45,20 @@ async function run() {
       const result = await bookingCollection.insertOne(booking);
       // SendTestEmail(booking);
       return res.send({ success: true, result });
+    })
+
+    app.get('/booking', async (req, res) => {
+      const email = req.query.user;
+      /*  const authorization = req.headers.authorization;
+       console.log('auth header: ',authorization); */
+      //const decodedEmail = req.decoded.email;
+      //if (patient === decodedEmail) {
+      const query = { useremail: email };
+      const bookings = await bookingCollection.find(query).toArray();
+      return res.send(bookings);
+      //} else {
+      return res.status(403).send({ message: 'forbidden access' });
+      //}
     })
 
   } finally {

@@ -24,20 +24,28 @@ async function run() {
   try {
     await client.connect();
     const toolsCollection = client.db('tools').collection('products');
+    const bookingCollection = client.db('tools').collection('bookingProducts');
 
+      app.get('/tools', async (req, res) => {
+        const tools = await toolsCollection.find().toArray();
+        res.send(tools);
+      })
 
-    app.get('/tools', async (req, res) => {
-      const tools = await toolsCollection.find().toArray();
-      res.send(tools);
-    })
-    
     app.get('/tool/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await toolsCollection.findOne(query);
       // console.log(result);
       res.send(result);
-  })
+    })
+
+    app.post('/booking', async (req, res) => {
+      const booking = req.body;
+      // console.log(booking);
+      const result = await bookingCollection.insertOne(booking);
+      // SendTestEmail(booking);
+      return res.send({ success: true, result });
+    })
 
   } finally {
 

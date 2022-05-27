@@ -23,7 +23,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 function verifyJWT(req, res, next) {
 
   const authHeader = req.headers.authorization;
-  console.log(authHeader);
+  // console.log(authHeader);
   if (!authHeader) {
     return res.status(401).send({ message: 'UnAuthorized access' });
   }
@@ -48,6 +48,7 @@ async function run() {
     const bookingCollection = client.db('tools').collection('bookingProducts');
     const reviewCollection = client.db('tools').collection('reviews');
     const usersCollection = client.db('tools').collection('users');
+    const testingProductCollection = client.db('tools').collection('testingProduct');
 
 
     /* admin checker */
@@ -147,7 +148,7 @@ async function run() {
 
     // user addmin request handle
 
-    app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+    app.put('/user/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
 
       const filter = { email: email };
@@ -172,6 +173,13 @@ async function run() {
       const filter = { _id: ObjectId(id) };
       console.log(filter);
       const result = await reviewCollection.deleteOne(filter);
+      res.send(result);
+    })
+
+    app.post('/addproduct',verifyJWT,verifyAdmin ,async (req, res) => {
+      const product = req.body;
+      console.log(product);
+      const result = await testingProductCollection.insertOne(product);
       res.send(result);
     })
 

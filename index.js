@@ -67,14 +67,14 @@ async function run() {
 
 
     app.get('/tools', async (req, res) => {
-      const tools = await toolsCollection.find().toArray();
+      const tools = await testingProductCollection.find().toArray();
       res.send(tools);
     })
 
     app.get('/tool/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
-      const result = await toolsCollection.findOne(query);
+      const result = await testingProductCollection.findOne(query);
       // console.log(result);
       res.send(result);
     })
@@ -182,6 +182,21 @@ async function run() {
       const result = await testingProductCollection.insertOne(product);
       res.send(result);
     })
+
+    app.patch('/addbooking/:id', async (req, res) => {
+      const id = req.params.id;
+      // console.log(id);
+      const UQ = req.body;
+      // console.log(UQ);
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+          $set: {
+            quantity: UQ.quantity
+          }
+      }
+      const result = await testingProductCollection.updateOne(filter, updateDoc);
+      res.send(result);
+  })
 
   } finally {
 

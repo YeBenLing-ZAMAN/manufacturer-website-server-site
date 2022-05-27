@@ -39,17 +39,7 @@ function verifyJWT(req, res, next) {
 }
 
 
-/* admin checker */
-const verifyAdmin = async (req, res, next) => {
-  const adminRequester = req.decoded.email;
-  console.log(adminRequester);
-  const adminRequesterAccount = await usersCollection.findOne({ email: adminRequester })
-  if (adminRequesterAccount.role === 'admin') {
-      next();
-  } else {
-      res.status(403).send({ message: 'forbidden' });
-  }
-}
+
 
 async function run() {
   try {
@@ -58,6 +48,22 @@ async function run() {
     const bookingCollection = client.db('tools').collection('bookingProducts');
     const reviewCollection = client.db('tools').collection('reviews');
     const usersCollection = client.db('tools').collection('users');
+
+
+    /* admin checker */
+    const verifyAdmin = async (req, res, next) => {
+      const adminRequester = req.decoded.email;
+      console.log(adminRequester);
+      const adminRequesterAccount = await usersCollection.findOne({ email: adminRequester })
+      if (adminRequesterAccount.role === 'admin') {
+        next();
+      } else {
+        res.status(403).send({ message: 'forbidden' });
+      }
+    }
+
+
+
 
     app.get('/tools', async (req, res) => {
       const tools = await toolsCollection.find().toArray();
@@ -82,7 +88,7 @@ async function run() {
 
     app.get('/booking', verifyJWT, async (req, res) => {
       const email = req.query.user;
-      
+
       //const authorization = req.headers.authorization;
       //console.log('auth header: ', authorization);
 
@@ -111,6 +117,13 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/allreviews', async (req, res) => {
+      const query = {};
+      const result = await reviewCollection.find(query).toArray();
+      // console.log(result);
+      res.send(result);
+    })
+
     /* user token generated */
     app.put('/user/:email', async (req, res) => {
       const email = req.params.email;
@@ -134,24 +147,33 @@ async function run() {
 
     // user addmin request handle
 
-    app.put('/user/admin/:email', verifyJWT,async (req, res) => {
+    app.put('/user/admin/:email', verifyJWT, async (req, res) => {
       const email = req.params.email;
 
       const filter = { email: email };
       const updateDoc = {
-          $set: { role: 'admin' },
+        $set: { role: 'admin' },
       };
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
-  })
+    })
 
-  
-  app.get('/admin/:email', async (req, res) => {
-    const email = req.params.email;
-    const user = await usersCollection.findOne({ email: email });
-    const isAdmin = user.role === 'admin';
-    res.send({ admin: isAdmin });
-})
+
+    app.get('/admin/:email', async (req, res) => {
+      const email = req.params.email;
+      const user = await usersCollection.findOne({ email: email });
+      const isAdmin = user.role === 'admin';
+      res.send({ admin: isAdmin });
+    })
+
+    app.delete('/review/:id', verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: ObjectId(id) };
+      console.log(filter);
+      const result = await reviewCollection.deleteOne(filter);
+      res.send(result);
+    })
 
   } finally {
 

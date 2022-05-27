@@ -38,6 +38,19 @@ function verifyJWT(req, res, next) {
   // next();
 }
 
+
+/* admin checker */
+const verifyAdmin = async (req, res, next) => {
+  const adminRequester = req.decoded.email;
+  console.log(adminRequester);
+  const adminRequesterAccount = await usersCollection.findOne({ email: adminRequester })
+  if (adminRequesterAccount.role === 'admin') {
+      next();
+  } else {
+      res.status(403).send({ message: 'forbidden' });
+  }
+}
+
 async function run() {
   try {
     await client.connect();
@@ -69,8 +82,10 @@ async function run() {
 
     app.get('/booking', verifyJWT, async (req, res) => {
       const email = req.query.user;
-      const authorization = req.headers.authorization;
-      console.log('auth header: ', authorization);
+      
+      //const authorization = req.headers.authorization;
+      //console.log('auth header: ', authorization);
+
       //const decodedEmail = req.decoded.email;
       //if (patient === decodedEmail) {
       const query = { useremail: email };
@@ -119,7 +134,7 @@ async function run() {
 
     // user addmin request handle
 
-    app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+    app.put('/user/admin/:email', verifyJWT,async (req, res) => {
       const email = req.params.email;
 
       const filter = { email: email };
@@ -129,6 +144,14 @@ async function run() {
       const result = await usersCollection.updateOne(filter, updateDoc);
       res.send(result);
   })
+
+  
+  app.get('/admin/:email', async (req, res) => {
+    const email = req.params.email;
+    const user = await usersCollection.findOne({ email: email });
+    const isAdmin = user.role === 'admin';
+    res.send({ admin: isAdmin });
+})
 
   } finally {
 

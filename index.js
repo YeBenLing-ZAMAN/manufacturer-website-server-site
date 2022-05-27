@@ -25,15 +25,15 @@ function verifyJWT(req, res, next) {
   const authHeader = req.headers.authorization;
   console.log(authHeader);
   if (!authHeader) {
-      return res.status(401).send({ message: 'UnAuthorized access' });
+    return res.status(401).send({ message: 'UnAuthorized access' });
   }
   const token = authHeader.split(' ')[1];
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
-      if (err) {
-          return res.status(403).send({ message: 'Forbidden access' })
-      }
-      req.decoded = decoded;
-      next();
+    if (err) {
+      return res.status(403).send({ message: 'Forbidden access' })
+    }
+    req.decoded = decoded;
+    next();
   });
   // next();
 }
@@ -69,8 +69,8 @@ async function run() {
 
     app.get('/booking', verifyJWT, async (req, res) => {
       const email = req.query.user;
-       const authorization = req.headers.authorization;
-       console.log('auth header: ',authorization);
+      const authorization = req.headers.authorization;
+      console.log('auth header: ', authorization);
       //const decodedEmail = req.decoded.email;
       //if (patient === decodedEmail) {
       const query = { useremail: email };
@@ -88,9 +88,9 @@ async function run() {
       return res.send({ success: true, result });
     })
 
-    app.get('/review', async(req,res)=>{
+    app.get('/review', async (req, res) => {
       const email = req.query.email;
-      const query ={email: email};
+      const query = { email: email };
       const result = await reviewCollection.find(query).toArray();
       // console.log(result);
       res.send(result);
@@ -105,17 +105,30 @@ async function run() {
       const filter = { email: email };
       const options = { upsert: true };
       const updateDoc = {
-          $set: user,
+        $set: user,
       };
       const result = await usersCollection.updateOne(filter, updateDoc, options);
       const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
       res.send({ result, token });
+    })
+
+    app.get('/users', verifyJWT, async (req, res) => {
+      const users = await usersCollection.find().toArray();
+      res.send(users);
+    })
+
+    // user addmin request handle
+
+    app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+      const email = req.params.email;
+
+      const filter = { email: email };
+      const updateDoc = {
+          $set: { role: 'admin' },
+      };
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
   })
-  
-  app.get('/users', verifyJWT, async (req, res) => {
-    const users = await usersCollection.find().toArray();
-    res.send(users);
-})
 
   } finally {
 

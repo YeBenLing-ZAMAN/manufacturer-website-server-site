@@ -104,6 +104,13 @@ async function run() {
       //}
     })
 
+    app.get('/booking/:id', verifyJWT, async(req, res)=>{
+      const id = req.params.id;
+      const query = {_id: ObjectId(id)};
+      const result = await bookingCollection.findOne(query);
+      res.send(result);
+    })
+
     app.get('/allbooking', verifyJWT, verifyAdmin,async (req, res) => {
       const query = {};
       const allbooking = await bookingCollection.find(query).toArray();

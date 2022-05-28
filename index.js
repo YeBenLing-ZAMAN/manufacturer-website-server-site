@@ -100,8 +100,15 @@ async function run() {
       const bookings = await bookingCollection.find(query).toArray();
       return res.send(bookings);
       //} else {
-      return res.status(403).send({ message: 'forbidden access' });
+      //return res.status(403).send({ message: 'forbidden access' });
       //}
+    })
+
+    app.get('/allbooking', verifyJWT, verifyAdmin,async (req, res) => {
+      const query = {};
+      const allbooking = await bookingCollection.find(query).toArray();
+      // console.log(allbooking);
+      return res.send(allbooking);
     })
 
     app.post('/addreview', async (req, res) => {

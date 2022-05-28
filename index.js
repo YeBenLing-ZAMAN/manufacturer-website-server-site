@@ -118,7 +118,7 @@ async function run() {
       const id = req.params.id;
       const payment = req.body;
       const filter = { _id: ObjectId(id) };
-      console.log(payment);
+      // console.log(payment);
       const updateDoc = {
         $set: {
           paid: true,
@@ -151,7 +151,7 @@ async function run() {
       const id = req.params.id;
       const delivedProduct = req.body;
       const filter = { _id: ObjectId(id) };
-      console.log(delivedProduct);
+      // console.log(delivedProduct);
       const updateDoc = {
         $set: {
           delivery: true,
@@ -255,7 +255,7 @@ async function run() {
 
     app.post('/addproduct', verifyJWT, verifyAdmin, async (req, res) => {
       const product = req.body;
-      console.log(product);
+      // console.log(product);
       const result = await testingProductCollection.insertOne(product);
       res.send(result);
     })

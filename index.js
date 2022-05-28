@@ -77,6 +77,7 @@ async function run() {
       const result = await testingProductCollection.findOne(query);
       // console.log(result);
       res.send(result);
+      // res.send(true);
     })
 
     app.post('/booking', async (req, res) => {
@@ -169,34 +170,43 @@ async function run() {
 
     app.delete('/review/:id', verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
-      console.log(id);
+      //console.log(id);
       const filter = { _id: ObjectId(id) };
-      console.log(filter);
+      //console.log(filter);
       const result = await reviewCollection.deleteOne(filter);
       res.send(result);
     })
 
-    app.post('/addproduct',verifyJWT,verifyAdmin ,async (req, res) => {
+    app.delete('/bookingitmes/:id', async (req, res) => {
+      const id = req.params.id;
+      // console.log(id)
+      const filter = { _id: ObjectId(id) };
+      // console.log(filter);
+      const result = await bookingCollection.deleteOne(filter);
+      res.send(result);
+    })
+
+    app.post('/addproduct', verifyJWT, verifyAdmin, async (req, res) => {
       const product = req.body;
       console.log(product);
       const result = await testingProductCollection.insertOne(product);
       res.send(result);
     })
 
-    app.patch('/addbooking/:id', async (req, res) => {
+    app.patch('/addbooking/:id', verifyJWT, async (req, res) => {
       const id = req.params.id;
       // console.log(id);
       const UQ = req.body;
       // console.log(UQ);
       const filter = { _id: ObjectId(id) };
       const updateDoc = {
-          $set: {
-            quantity: UQ.quantity
-          }
+        $set: {
+          quantity: UQ.quantity
+        }
       }
       const result = await testingProductCollection.updateOne(filter, updateDoc);
       res.send(result);
-  })
+    })
 
   } finally {
 

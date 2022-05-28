@@ -5,6 +5,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const port = process.env.PORT || 5000;
 
@@ -49,6 +50,8 @@ async function run() {
     const reviewCollection = client.db('tools').collection('reviews');
     const usersCollection = client.db('tools').collection('users');
     const testingProductCollection = client.db('tools').collection('testingProduct');
+    const paymentCollection = client.db('tools').collection('payments');
+    const deliveryCollection = client.db('tools').collection('delivery');
 
 
     /* admin checker */
@@ -104,14 +107,64 @@ async function run() {
       //}
     })
 
-    app.get('/booking/:id', verifyJWT, async(req, res)=>{
+    app.get('/booking/:id', verifyJWT, async (req, res) => {
       const id = req.params.id;
-      const query = {_id: ObjectId(id)};
+      const query = { _id: ObjectId(id) };
       const result = await bookingCollection.findOne(query);
       res.send(result);
     })
 
-    app.get('/allbooking', verifyJWT, verifyAdmin,async (req, res) => {
+    app.patch('/booking/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      console.log(payment);
+      const updateDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId
+        }
+      }
+      /* send a email to client to send a confirmation mail */
+
+      const result = await paymentCollection.insertOne(payment);
+      const updatedBooking = await bookingCollection.updateOne(filter, updateDoc);
+      res.send(updatedBooking);
+    })
+    /* payment post req */
+    app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+      const product = req.body;
+      const price = product.totalPrice;
+      const amount = price * 100;
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: 'usd',
+        payment_method_types: ['card']
+      });
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
+    })
+
+    app.patch('/updatebooking/:id', verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const delivedProduct = req.body;
+      const filter = { _id: ObjectId(id) };
+      console.log(delivedProduct);
+      const updateDoc = {
+        $set: {
+          delivery: true,
+        }
+      }
+      /* send a email to client to send a confirmation mail */
+
+      const result = await deliveryCollection.insertOne(delivedProduct);
+      const updatedBooking = await bookingCollection.updateOne(filter, updateDoc);
+      res.send(updatedBooking);
+    })
+
+    app.get('/allbooking', verifyJWT, verifyAdmin, async (req, res) => {
       const query = {};
       const allbooking = await bookingCollection.find(query).toArray();
       // console.log(allbooking);
